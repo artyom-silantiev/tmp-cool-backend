@@ -8,8 +8,6 @@ RUN npm install --legacy-peer-deps
 
 COPY . .
 
-RUN npm run build:web
-
 EXPOSE 3000
 
-CMD ["node", "dist/ssr/index.js"]
+CMD ["sh", "_run_app.sh"]
