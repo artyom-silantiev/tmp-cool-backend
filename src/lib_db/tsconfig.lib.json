@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "declaration": true,
+    "outDir": "../../dist/src/lib_db"
+  },
+  "include": ["./**/*"],
+  "exclude": [
+    "tsconfig.lib.json",
+    "node_modules",
+    "dist",
+    "test",
+    "**/*spec.ts"
+  ]
+}
