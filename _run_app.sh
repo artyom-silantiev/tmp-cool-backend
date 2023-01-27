@@ -1,7 +1,7 @@
 #/usr/bin/sh
 sleep 10
-npm run migrate_prod
-npm run cli:seeder
-npx run generate
-npm run build:web
-npm run start:web:prod
+yarn migrate_prod
+yarn cli:seeder
+yarn generate
+yarn build:web
+yarn start:web:prod
