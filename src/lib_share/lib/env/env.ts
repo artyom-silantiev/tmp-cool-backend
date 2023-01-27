@@ -56,8 +56,8 @@ export class Env {
 
   DATABASE_URL = toString(E.DATABASE_URL, 'postgresql://postgres:postgres@localhost:5432/postgres?schema=public');
 
-  DIR_TEMP_FILES = toPath(E.DIR_TEMP_FILES, './data/nodes/{NAF}/temp');
-  DIR_LOCAL_FILES = toPath(E.DIR_LOCAL_FILES, './data/local_files');
+  DIR_DATA = toPath(E.DIR_TEMP, './data/data');
+  DIR_TEMP = toPath(E.DIR_TEMP, './data/temp');
   DIR_FRONT_APP_MAIN = toPath(E.DIR_FRONT_APP_MAIN, './data/frontends/main');
   DIR_ASSETS_PUBLIC = toPath(E.DIR_ASSETS_PUBLIC, './assets/public');
 

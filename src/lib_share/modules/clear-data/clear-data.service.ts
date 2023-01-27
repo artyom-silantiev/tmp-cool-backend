@@ -4,6 +4,7 @@ import { ImageStorage, MediaType } from '@prisma/client';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { useEnv } from '@share/lib/env/env';
+import { LocalFilesDefs } from '../local_files/defs';
 
 @Injectable()
 export class ClearDataService {
@@ -142,7 +143,7 @@ export class ClearDataService {
     }
 
     const absPathToFile = path.resolve(
-      this.env.DIR_LOCAL_FILES,
+      LocalFilesDefs.DIR,
       localFile.pathToFile,
     );
     await fs.remove(absPathToFile);
