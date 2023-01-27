@@ -57,7 +57,6 @@ export class Env {
   DATABASE_URL = toString(E.DATABASE_URL, 'postgresql://postgres:postgres@localhost:5432/postgres?schema=public');
 
   DIR_TEMP_FILES = toPath(E.DIR_TEMP_FILES, './data/nodes/{NAF}/temp');
-  DIR_IPFS_CACHE = toPath(E.DIR_IPFS_CACHE, './data/nodes/{NAF}/ipfs_cache');
   DIR_LOCAL_FILES = toPath(E.DIR_LOCAL_FILES, './data/local_files');
   DIR_FRONT_APP_MAIN = toPath(E.DIR_FRONT_APP_MAIN, './data/frontends/main');
   DIR_ASSETS_PUBLIC = toPath(E.DIR_ASSETS_PUBLIC, './assets/public');
@@ -81,25 +80,6 @@ export class Env {
   MAILER_SMTP_ENCRYPTION = toString(E.MAILER_SMTP_IS_SECURE, 'tls');
   MAILER_SMTP_AUTH_USER = toString(E.MAILER_SMTP_AUTH_USER, 'AKIASHBDRVDDWJDRLBEO');
   MAILER_SMTP_AUTH_PASS = toString(E.MAILER_SMTP_AUTH_PASS, 'BMYz83dlWTvFEwX3D/aS0CrCWEylmID6ImfZM7wpkA2l');
-
-  AWS_REGION = toString(E.AWS_REGION, 'us-east-1');
-  AWS_S3_IS_LOCAL = toBool(E.AWS_S3_IS_LOCAL, true);
-  AWS_S3_ACCESS_KEY = toString(E.AWS_S3_ACCESS_KEY, 'S3_ACCESS_KEY');
-  AWS_S3_SECRET_KEY = toString(E.AWS_S3_SECRET_KEY, 'S3_SECRET_KEY');
-  AWS_S3_ENDPOINT = toString(E.AWS_S3_ENDPOINT, 'http://127.0.0.1:9000');
-  AWS_S3_BUCKET_NAME_IPFS = toString(E.AWS_S3_BUCKET_NAME_IPFS, 'ipfs');
-  AWS_S3_BUCKET_NAME_CONTENT = toString(E.AWS_S3_BUCKET_NAME_CONTENT, 'content');
-
-  IPFS_CACHE_DIR_SUFFIX_LENGTH = toInt(E.IPFS_CACHE_DIR_SUFFIX_LENGTH, 2);
-  IPFS_CACHE_MIN_THUMB_LOG_SIZE = toInt(E.IPFS_CACHE_MIN_THUMB_LOG_SIZE, 5);
-  IPFS_CACHE_MAX_ITEMS = toInt(E.IPFS_HOT_CACHE_MAX_ITEMS, 1000);
-  IPFS_CACHE_MAX_SIZE = toInt(E.IPFS_CACHE_MAX_SIZE, 1024 * 1024 * 2048); // 2048 mb
-  IPFS_IMAGE_MAX_SIZE = toInt(E.IPFS_IMAGE_MAX_SIZE, 1024 * 1024 * 8); // 8mb
-  IPFS_IMAGE_ALLOW_MIME_TYPES = toArrayStrings(E.IPFS_IMAGE_ALLOW_MIME_TYPES, ',', ['image/jpeg', 'image/png']);
-  IPFS_AUDIO_MAX_SIZE = toInt(E.IPFS_AUDIO_MAX_SIZE, 1024 * 1024 * 20); // 20mb
-  IPFS_AUDIO_ALLOW_MIME_TYPES = toArrayStrings(E.IPFS_AUDIO_ALLOW_MIME_TYPES, ',', ['audio/mp3']);
-  IPFS_VIDEO_MAX_SIZE = toInt(E.IPFS_VIDEO_MAX_SIZE, 1024 * 1024 * 20); // 20mb
-  IPFS_VIDEO_ALLOW_MIME_TYPES = toArrayStrings(E.IPFS_VIDEO_ALLOW_MIME_TYPES, ',', ['video/mp4']);
 
   // LOCAL_FILES
   LOCAL_FILES_CACHE_MIN_THUMB_LOG_SIZE = toInt(E.LOCAL_FILES_CACHE_MIN_THUMB_LOG_SIZE, 5);
@@ -131,13 +111,13 @@ export class Env {
   getNodeProtocol() {
     return this.getBaseProtocol(this.NODE_PROTOCOL);
   }
+}
 
-  getDefaultEnv() {
-    onlyDefault = true;
-    const defaultEnv = new Env();
-    onlyDefault = false;
-    return defaultEnv;
-  }
+export function getDefaultEnv() {
+  onlyDefault = true;
+  const defaultEnv = new Env();
+  onlyDefault = false;
+  return defaultEnv;
 }
 
 export function toString(envParam: string, defaultValue: string) {
