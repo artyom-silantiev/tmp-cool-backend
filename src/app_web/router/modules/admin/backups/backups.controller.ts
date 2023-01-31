@@ -11,7 +11,9 @@ import { BackupsService } from './backups.service';
 import express from 'express';
 import { AuthGuard } from '@share/modules/auth/auth.guard';
 import { ACL, AclScopes } from '@share/modules/auth/acl.decorator';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('backups')
 @Controller()
 @UseGuards(AuthGuard)
 @ACL(AclScopes.allowAdmin)
@@ -26,11 +28,10 @@ export class BackupsController {
   }
 
   @Get(':name')
-  async downloadBackup(
-    @Res() res: express.Response,
-    @Param('name') name: string,
-  ) {
-    const absBackupFile = await this.backupsService.getAbsBackupFile(name);
+  async downloadBackup(@Res() res: express.Response, @Param() params) {
+    const absBackupFile = await this.backupsService.getAbsBackupFile(
+      params.name,
+    );
     res.sendFile(absBackupFile);
   }
 
@@ -41,15 +42,15 @@ export class BackupsController {
   }
 
   @Post(':name')
-  async useBackup(@Param('name') name: string) {
-    await this.backupsService.restoreFromBackup(name);
-    return '';
+  async restoreFromBackup(@Param() params) {
+    await this.backupsService.restoreFromBackup(params.name);
+    return `restored from ${params.name}`;
   }
 
   @Delete(':name')
-  async deleteBackups(@Param('name') name: string) {
-    await this.backupsService.deleteBackupFile(name);
-    return '';
+  async deleteBackup(@Param() params) {
+    await this.backupsService.deleteBackupFile(params.name);
+    return `${params.name} deleted`;
   }
 
   @Post('upload')

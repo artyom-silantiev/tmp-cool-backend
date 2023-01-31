@@ -36,7 +36,7 @@ export class BySha256AndArgsDto {
 @ApiTags('local files')
 @Controller()
 export class LocalFilesController {
-  constructor(private localFilesOutput: LocalFilesOutputService) { }
+  constructor(private localFilesOutput: LocalFilesOutputService) {}
 
   parseSha256Param(sha256Param: string, query: { [key: string]: string }) {
     let localFilesRequest: LocalFilesRequest;
@@ -183,12 +183,14 @@ export class LocalFilesController {
     const query = req.query as { [key: string]: string };
     const localFilesRequest = this.parseSha256Param(sha256Param, query);
 
+    console.log('getBySha256', localFilesRequest);
+
     const getLocalFileRes =
       await this.localFilesOutput.getLocalFilePathByLocalFilesRequest(
         localFilesRequest,
       );
     if (getLocalFileRes.isBad) {
-      console.error(getLocalFileRes.errData);
+      console.error('getLocalFileRes.errData', getLocalFileRes.errData);
       res.status(getLocalFileRes.code).send('');
       return;
     }

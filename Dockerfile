@@ -2,8 +2,7 @@ FROM node:16-alpine
 
 WORKDIR /usr/src/app
 
-RUN apk update
-RUN apk add file
+RUN apk update && apk add file && apk add --no-cache docker-cli
 
 COPY package*.json ./
 

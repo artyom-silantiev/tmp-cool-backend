@@ -33,7 +33,7 @@ export class LocalFilesOutputService {
     private prisma: PrismaService,
     private localFileRepository: LocalFileRepository,
     private localFilesMake: LocalFilesMakeService,
-  ) { }
+  ) {}
 
   async getLocalFilePathByLocalFilesRequest(
     localFilesRequest: LocalFilesRequest,
@@ -44,6 +44,7 @@ export class LocalFilesOutputService {
     const cacheLocalFileMetaRaw = await this.cacheLocalFile.get(
       localFilesRequest,
     );
+    console.log('cacheLocalFileMetaRaw', cacheLocalFileMetaRaw);
     if (cacheLocalFileMetaRaw) {
       const cacheLocalFileMeta = JSON.parse(
         cacheLocalFileMetaRaw,

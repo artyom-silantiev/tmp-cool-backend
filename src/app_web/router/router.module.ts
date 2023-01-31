@@ -23,10 +23,10 @@ import { BackupsModule } from './modules/admin/backups/backups.module';
 
     // Routes Modules
     CommonModule,
-    BackupsModule,
     GuestModule,
     UserModule,
     LocalFilesRouteModule,
+    BackupsModule,
 
     RouterModule.register([
       {

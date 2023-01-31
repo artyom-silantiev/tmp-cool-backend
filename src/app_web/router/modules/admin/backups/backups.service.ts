@@ -1,11 +1,11 @@
 import { promisify } from 'node:util';
 import { exec } from 'node:child_process';
-import path from 'node:path';
-import AdmZip from 'adm-zip';
-import moment from 'moment';
-import fs from 'fs-extra';
 import { useEnv } from '@share/lib/env/env';
 import { Injectable } from '@nestjs/common';
+import * as path from 'node:path';
+import * as AdmZip from 'adm-zip';
+import * as moment from 'moment';
+import * as fs from 'fs-extra';
 
 const asyncExec = promisify(exec);
 const env = useEnv();
@@ -109,6 +109,8 @@ export class BackupsService {
 
     await this.restoreDataDir(backupDir);
     await this.restoreFromSqlDump(backupDir);
+
+    await fs.remove(backupDir);
   }
 
   private async restoreFromSqlDump(backupDir: string) {
@@ -137,7 +139,5 @@ export class BackupsService {
       await fs.move(newDataDir, appDataDir);
       await fs.remove(tempDataDir);
     }
-
-    await fs.remove(backupDir);
   }
 }
