@@ -17,9 +17,9 @@ export class LocalFilesInputService {
   constructor(
     private imageRepository: ImageRepository,
     private localFilesMake: LocalFilesMakeService,
-  ) { }
+  ) {}
 
-  async init() { }
+  async init() {}
 
   async uploadImageByFile(imageFile: string) {
     const stdRes = new StandardResult<Image>();

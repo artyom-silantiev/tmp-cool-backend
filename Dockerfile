@@ -2,10 +2,12 @@ FROM node:16-alpine
 
 WORKDIR /usr/src/app
 
-COPY package*.json ./
-COPY yarn.lock ./
+RUN apk update
+RUN apk add file
 
-RUN yarn
+COPY package*.json ./
+
+RUN npm install --legacy-peer-deps
 
 COPY . .
 

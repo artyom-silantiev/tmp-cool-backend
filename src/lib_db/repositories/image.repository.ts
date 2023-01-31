@@ -1,19 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import {
-  Image,
-  ImageStorage,
-  LocalFile,
-  User,
-} from '@prisma/client';
+import { Image, ImageStorage, LocalFile, User } from '@prisma/client';
 
 export type ImageRow = Image & {
   Users?: User[];
+  LocalFile?: LocalFile;
 };
 
 @Injectable()
 export class ImageRepository {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   get R() {
     return this.prisma.image;
@@ -24,6 +20,9 @@ export class ImageRepository {
       data: {
         storage: ImageStorage.LocalFile,
         localFileId: localFile.id,
+      },
+      include: {
+        LocalFile: true,
       },
     });
 

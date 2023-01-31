@@ -248,7 +248,7 @@ export class UserController {
 
     res.status(code);
     return {
-      stream: this.userRepository.toView(updatedUser, UserViewType.PRIVATE),
+      user: this.userRepository.toView(updatedUser, UserViewType.PRIVATE),
     };
   }
 }

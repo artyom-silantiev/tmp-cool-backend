@@ -24,7 +24,7 @@ export class LocalFilesMakeService {
   constructor(
     private prisma: PrismaService,
     private localFileRepository: LocalFileRepository,
-  ) { }
+  ) {}
 
   async createLocalFileByFile(
     tempFile: string,

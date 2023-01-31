@@ -43,6 +43,10 @@ export class UserView {
     const modelView = Object.assign(new UserView(), {
       id: model.id.toString(),
       email: model.email,
+      imageSha256:
+        model.Image && model.Image.LocalFile
+          ? model.Image.LocalFile.sha256
+          : null,
     }) as UserView;
 
     if (viewType === UserViewType.PRIVATE) {
@@ -57,7 +61,7 @@ export class UserView {
 export class UserFetchBuilder {
   args: Prisma.UserFindManyArgs = {};
 
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   init(initialArgs: Prisma.UserFindManyArgs) {
     this.args = initialArgs;
@@ -93,7 +97,7 @@ export class UserRepository {
   private bcrypt = useBcrypt();
   private bs58 = useBs58();
 
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   get R() {
     return this.prisma.user;
