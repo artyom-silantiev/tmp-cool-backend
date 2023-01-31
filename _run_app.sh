@@ -3,6 +3,6 @@ sleep 5
 npm run migrate_prod
 npm run cli:seeder
 npm run generate
-#npm run build:web
-#npm run start:web:prod
-npm run start:web:dev
+#npm run web:build
+#npm run web:prod
+npm run web:dev

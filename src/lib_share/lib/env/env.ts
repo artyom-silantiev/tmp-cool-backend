@@ -56,8 +56,14 @@ export class Env {
 
   DATABASE_URL = toString(E.DATABASE_URL, 'postgresql://postgres:postgres@localhost:5432/postgres?schema=public');
 
+  POSTGRES_HOST = toString(E.POSTGRES_HOST, 'tmp-cool-db');
+  POSTGRES_DB = toString(E.POSTGRES_DB, 'appdb');
+  POSTGRES_USER = toString(E.POSTGRES_USER, 'postgres');
+  POSTGRES_PASSWORD = toString(E.POSTGRES_PASSWORD, 'postgres');
+
   DIR_DATA = toPath(E.DIR_DATA, './data');
   DIR_TEMP = toPath(E.DIR_TEMP, './temp');
+  DIR_BACKUPS = toPath(E.DIR_BACKUPS, './backups');
   DIR_FRONT_APP_MAIN = toPath(E.DIR_FRONT_APP_MAIN, './data/frontends/main');
   DIR_ASSETS_PUBLIC = toPath(E.DIR_ASSETS_PUBLIC, './assets/public');
 

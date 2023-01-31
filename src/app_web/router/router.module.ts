@@ -15,6 +15,7 @@ import {
 } from '@nestjs/serve-static';
 
 import { AuthMiddleware } from '@share/modules/auth/auth.middleware';
+import { BackupsModule } from './modules/admin/backups/backups.module';
 
 @Module({
   imports: [
@@ -22,24 +23,23 @@ import { AuthMiddleware } from '@share/modules/auth/auth.middleware';
 
     // Routes Modules
     CommonModule,
+    BackupsModule,
     GuestModule,
     UserModule,
     LocalFilesRouteModule,
 
     RouterModule.register([
       {
-        path: 'api',
-        module: CommonModule,
-        children: [
-          {
-            path: 'guest',
-            module: GuestModule,
-          },
-          {
-            path: 'user',
-            module: UserModule,
-          },
-        ],
+        path: 'api/admin/backups',
+        module: BackupsModule,
+      },
+      {
+        path: 'api/guest',
+        module: GuestModule,
+      },
+      {
+        path: 'api/user',
+        module: UserModule,
       },
       {
         path: 'local_files',
@@ -68,7 +68,7 @@ import { AuthMiddleware } from '@share/modules/auth/auth.middleware';
               // exclude: ['/content*', '/sha256*', '/api*', '/static_b'],
             });
           }
-        } catch (error) { }
+        } catch (error) {}
 
         return options;
       },
