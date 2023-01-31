@@ -51,7 +51,7 @@ export class UserController {
     private jwtUserActivate: JwtUserActivationService,
     private clearData: ClearDataService,
     private localFilesInputService: LocalFilesInputService,
-  ) { }
+  ) {}
 
   @Post('logout')
   @ApiOperation({
@@ -209,7 +209,7 @@ export class UserController {
     @Res({ passthrough: true }) res: Response,
   ) {
     if (
-      this.env.IPFS_IMAGE_ALLOW_MIME_TYPES.indexOf(imageFile.mimetype) === -1
+      this.env.LOCAL_FILES_ALLOW_MIME_TYPES.indexOf(imageFile.mimetype) === -1
     ) {
       throw new HttpException(
         ExErrors.Upload.InvalidMime,
@@ -217,7 +217,7 @@ export class UserController {
       );
     }
 
-    if (imageFile.size > this.env.IPFS_IMAGE_MAX_SIZE) {
+    if (imageFile.size > this.env.LOCAL_FILES_IMAGE_MAX_SIZE) {
       throw new HttpException(
         ExErrors.Upload.VeryLarge,
         HttpStatus.BAD_REQUEST,
@@ -229,9 +229,8 @@ export class UserController {
     });
     const oldImage = user.imageId;
 
-    const uploadImageRes = await this.localFilesInputService.uploadImageByMulter(
-      imageFile,
-    );
+    const uploadImageRes =
+      await this.localFilesInputService.uploadImageByMulter(imageFile);
     if (uploadImageRes.isBad) {
       console.error(uploadImageRes.errData);
       throw new HttpException('', HttpStatus.INTERNAL_SERVER_ERROR);

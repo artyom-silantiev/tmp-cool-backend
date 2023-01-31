@@ -14,7 +14,7 @@ export class CommonController {
   getConfigs() {
     return {
       maxUploadImageSize: {
-        value: this.env.IPFS_IMAGE_MAX_SIZE,
+        value: this.env.LOCAL_FILES_IMAGE_MAX_SIZE,
         description:
           'Max upload image size in bytes for: user image, stream image, record image, record screenshot, category image.',
       },
