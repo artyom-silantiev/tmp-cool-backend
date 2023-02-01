@@ -10,6 +10,11 @@ import { useRedis } from '@share/lib/redis';
 import { useCacheLocalFile } from '@share/lib/cache/local-file';
 
 const asyncExec = promisify(exec);
+async function sh(cmd: string) {
+  console.log('cmd: ', cmd);
+  await asyncExec(cmd);
+}
+
 const env = useEnv();
 
 function getBackUpFileInfo(backupFileName: string) {
@@ -76,7 +81,7 @@ export class BackupsService {
       `> ${dumpFile}`,
     ].join(' ');
 
-    await asyncExec(cmd);
+    await sh(cmd);
 
     return dumpFile;
   }
@@ -111,6 +116,10 @@ export class BackupsService {
       await this.restoreDataDir(backupDir);
       await this.restoreFromSqlDump(backupDir);
       await this.clearRedisCache();
+      // self restart
+      setTimeout(async () => {
+        await sh(`docker restart ${env.NODE_HOST}`);
+      }, 100);
     } catch (error) {
       console.error(error);
       await fs.remove(backupDir);
@@ -132,8 +141,7 @@ export class BackupsService {
     ];
 
     for (const cmd of cmds) {
-      console.log('cmd:', cmd);
-      await asyncExec(cmd);
+      await sh(cmd);
     }
   }
 
