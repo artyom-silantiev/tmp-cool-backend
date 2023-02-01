@@ -6,6 +6,8 @@ import * as path from 'node:path';
 import * as AdmZip from 'adm-zip';
 import * as moment from 'moment';
 import * as fs from 'fs-extra';
+import { useRedis } from '@share/lib/redis';
+import { useCacheLocalFile } from '@share/lib/cache/local-file';
 
 const asyncExec = promisify(exec);
 const env = useEnv();
@@ -109,6 +111,7 @@ export class BackupsService {
 
     await this.restoreDataDir(backupDir);
     await this.restoreFromSqlDump(backupDir);
+    await this.clearRedisCache();
 
     await fs.remove(backupDir);
   }
@@ -139,5 +142,12 @@ export class BackupsService {
       await fs.move(newDataDir, appDataDir);
       await fs.remove(tempDataDir);
     }
+  }
+
+  private async clearRedisCache() {
+    const redis = useRedis();
+    const cacheLocalFile = useCacheLocalFile();
+    const keys = await redis.keys(cacheLocalFile.prefixKey());
+    await redis.del(keys);
   }
 }

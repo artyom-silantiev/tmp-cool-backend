@@ -1,7 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { LocalFile, Image } from '@prisma/client';
-import { StandardResult } from '@share/standard-result.class';
 
 export type LocalFileRow = LocalFile & {
   Images?: Image[];
@@ -11,7 +10,7 @@ export type LocalFileRow = LocalFile & {
 
 @Injectable()
 export class LocalFileRepository {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   get R() {
     return this.prisma.localFile;
@@ -27,8 +26,6 @@ export class LocalFileRepository {
   }
 
   async getLocalFileBySha256Hash(sha256: string) {
-    const res = new StandardResult<LocalFile>();
-
     const localFile = await this.prisma.localFile.findFirst({
       where: {
         sha256,
@@ -36,10 +33,10 @@ export class LocalFileRepository {
     });
 
     if (!localFile) {
-      return res.setCode(404);
+      throw new HttpException('', 404);
     }
 
-    return res.setData(localFile);
+    return { status: 200, localFile };
   }
 
   async getThumbs(localFile: LocalFile) {

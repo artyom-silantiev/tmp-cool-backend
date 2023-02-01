@@ -2,9 +2,13 @@ import { LocalFilesRequest } from '@share/modules/local_files/local_files_reques
 import { LocalFileMeta } from '@share/modules/local_files/local_files-output.service';
 import { useRedis } from '../redis';
 
+const prefixKey = 'LocalFile:';
 class CacheLocalFile {
+  prefixKey() {
+    return `${prefixKey}:*`;
+  }
   key(lfReq: LocalFilesRequest) {
-    let locaFileCache = 'LocalFile:';
+    let locaFileCache = `${prefixKey}:`;
     locaFileCache = lfReq.sha256;
     if (lfReq.thumb) {
       locaFileCache += ':' + lfReq.thumb.name;

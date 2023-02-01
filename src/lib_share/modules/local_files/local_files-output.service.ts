@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { LocalFilesRequest } from './local_files_request';
 import { StandardResult } from '@share/standard-result.class';
 import { LocalFilesMakeService } from './local_files-make.service';
@@ -12,6 +12,7 @@ import { useCacheLocalFile } from '@share/lib/cache/local-file';
 import { LocalFilesDefs } from './defs';
 
 export type LocalFileMeta = {
+  status: number;
   absPathToFile: string;
   sha256: string;
   contentType: MediaType;
@@ -38,56 +39,55 @@ export class LocalFilesOutputService {
   async getLocalFilePathByLocalFilesRequest(
     localFilesRequest: LocalFilesRequest,
   ) {
-    const stdRes = new StandardResult<LocalFileMeta>();
     const sha256 = localFilesRequest.sha256;
 
     const cacheLocalFileMetaRaw = await this.cacheLocalFile.get(
       localFilesRequest,
     );
-    console.log('cacheLocalFileMetaRaw', cacheLocalFileMetaRaw);
+
     if (cacheLocalFileMetaRaw) {
       const cacheLocalFileMeta = JSON.parse(
         cacheLocalFileMetaRaw,
       ) as LocalFileMeta;
-      return stdRes.setData(cacheLocalFileMeta);
+      return cacheLocalFileMeta;
     }
 
-    const localFileRes =
+    const tmpLocalFile =
       await this.localFileRepository.getLocalFileBySha256Hash(sha256);
-    if (localFileRes.isBad) {
-      return stdRes.mergeBad(localFileRes);
-    }
-    const tmpLocalFile = localFileRes.data;
 
-    let localFile: LocalFile;
-    if (localFilesRequest.thumb && !tmpLocalFile.isThumb) {
-      if (localFileRes.data.type !== MediaType.IMAGE) {
-        return stdRes
-          .setCode(406)
-          .setErrData('thumbs size param for not thumbs allow object');
+    let localFileWrap: { status: number; localFile: LocalFile };
+    if (localFilesRequest.thumb && !tmpLocalFile.localFile.isThumb) {
+      if (tmpLocalFile.localFile.type !== MediaType.IMAGE) {
+        throw new HttpException(
+          'thumbs size param for not thumbs allow object',
+          406,
+        );
       }
 
       const thumb = localFilesRequest.thumb;
       if (thumb.type === 'width') {
         thumb.name = LocalFilesRequest.parseThumbSize(
           parseInt(thumb.name),
-          tmpLocalFile.width,
+          tmpLocalFile.localFile.width,
           this.env.LOCAL_FILES_CACHE_MIN_THUMB_LOG_SIZE,
         );
       } else if (thumb.type === 'name') {
         if (thumb.name === 'fullhd') {
-          if (tmpLocalFile.width > 1920 || tmpLocalFile.height > 1920) {
+          if (
+            tmpLocalFile.localFile.width > 1920 ||
+            tmpLocalFile.localFile.height > 1920
+          ) {
             // noting
           } else {
-            localFile = tmpLocalFile;
+            localFileWrap = tmpLocalFile;
           }
         }
       }
 
-      if (!localFile) {
+      if (!localFileWrap) {
         const localFileThumb = await this.prisma.localFileThumb.findFirst({
           where: {
-            orgLocalFileId: tmpLocalFile.id,
+            orgLocalFileId: tmpLocalFile.localFile.id,
             thumbName: thumb.name,
           },
           include: {
@@ -96,30 +96,33 @@ export class LocalFilesOutputService {
         });
 
         if (localFileThumb) {
-          localFile = localFileThumb.ThumbLocalFile;
+          localFileWrap = {
+            status: 200,
+            localFile: localFileThumb.ThumbLocalFile,
+          };
         }
       }
 
-      if (!localFile) {
-        const createThumbRes =
+      if (!localFileWrap) {
+        const createdThumb =
           await this.localFilesMake.createNewThumbForLocalFile(
-            tmpLocalFile,
+            tmpLocalFile.localFile,
             thumb,
           );
-        if (createThumbRes.isBad) {
-          return stdRes.mergeBad(createThumbRes);
-        }
-        localFile = createThumbRes.data;
+
+        localFileWrap = createdThumb;
       }
     } else {
-      localFile = tmpLocalFile;
+      localFileWrap = tmpLocalFile;
     }
 
+    const localFile = localFileWrap.localFile;
     const absPathToFile = path.resolve(
       LocalFilesDefs.DIR,
       localFile.pathToFile,
     );
     const localFileMeta = {
+      status: localFileWrap.status,
       absPathToFile,
       sha256: localFile.sha256,
       contentType: localFile.type,
@@ -132,8 +135,11 @@ export class LocalFilesOutputService {
       createdAt: localFile.createdAt,
     } as LocalFileMeta;
 
-    await this.cacheLocalFile.set(localFilesRequest, localFileMeta);
+    await this.cacheLocalFile.set(
+      localFilesRequest,
+      Object.assign(localFileMeta, { status: 200 }),
+    );
 
-    return stdRes.setData(localFileMeta);
+    return localFileMeta;
   }
 }

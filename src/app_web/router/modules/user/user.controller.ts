@@ -231,12 +231,8 @@ export class UserController {
 
     const uploadImageRes =
       await this.localFilesInputService.uploadImageByMulter(imageFile);
-    if (uploadImageRes.isBad) {
-      console.error(uploadImageRes.errData);
-      throw new HttpException('', HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-    const image = uploadImageRes.data;
-    const code = uploadImageRes.code;
+    const image = uploadImageRes.image;
+    const status = uploadImageRes.status;
 
     const updatedUser = await this.userRepository.updateByModel(user, {
       imageId: image.id,
@@ -246,7 +242,7 @@ export class UserController {
       await this.clearData.deleteImageById(oldImage);
     }
 
-    res.status(code);
+    res.status(status);
     return {
       user: this.userRepository.toView(updatedUser, UserViewType.PRIVATE),
     };

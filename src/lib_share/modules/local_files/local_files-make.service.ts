@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { LocalFile, MediaType } from '@prisma/client';
 import { StandardResult } from '@share/standard-result.class';
 
@@ -15,6 +15,7 @@ import { getMimeFromPath, getFileSha256 } from '@share/helpers';
 import { useEnv } from '@share/lib/env/env';
 import { useBs58 } from '@share/lib/bs58';
 import { LocalFilesDefs } from './defs';
+import { LocalFileWrap } from './types';
 
 @Injectable()
 export class LocalFilesMakeService {
@@ -35,15 +36,14 @@ export class LocalFilesMakeService {
       };
       noValidation?: boolean;
     },
-  ) {
-    const stdRes = new StandardResult<LocalFile>();
+  ): Promise<LocalFileWrap> {
     const fileSha256Hash = await getFileSha256(tempFile);
 
-    const getLocalFileRes =
+    let localFileWrap: LocalFileWrap =
       await this.localFileRepository.getLocalFileBySha256Hash(fileSha256Hash);
-    if (getLocalFileRes.isGood) {
+    if (localFileWrap) {
       await fs.remove(tempFile);
-      return stdRes.setCode(208).setData(getLocalFileRes.data);
+      return { ...localFileWrap, ...{ status: 208 } };
     }
 
     const mime = await getMimeFromPath(tempFile);
@@ -92,9 +92,7 @@ export class LocalFilesMakeService {
     if (params && params.thumbData) {
       if (contentType !== MediaType.IMAGE) {
         await fs.remove(tempFile);
-        return stdRes
-          .setCode(500)
-          .setErrData('bad org content type for create thumb');
+        throw new HttpException('bad org content type for create thumb', 500);
       }
     }
 
@@ -112,7 +110,7 @@ export class LocalFilesMakeService {
 
     let localFile: LocalFile;
     if (params && params.thumbData) {
-      const thumbLocalFile = await this.prisma.localFile.create({
+      localFile = await this.prisma.localFile.create({
         data: {
           sha256: fileSha256Hash,
           mime,
@@ -129,12 +127,10 @@ export class LocalFilesMakeService {
       await this.prisma.localFileThumb.create({
         data: {
           orgLocalFileId: params.thumbData.orgLocalFileId,
-          thumbLocalFileId: thumbLocalFile.id,
+          thumbLocalFileId: localFile.id,
           thumbName: params.thumbData.name,
         },
       });
-
-      localFile = thumbLocalFile;
     } else {
       localFile = await this.prisma.localFile.create({
         data: {
@@ -150,16 +146,15 @@ export class LocalFilesMakeService {
       });
     }
 
-    stdRes.setData(localFile);
-    return stdRes;
+    localFileWrap = {
+      status: 201,
+      localFile: localFile,
+    };
+
+    return localFileWrap;
   }
 
-  async createNewThumbForLocalFile(
-    orgLocalFile: LocalFile,
-    thumb: ThumbParam,
-  ): Promise<StandardResult<LocalFile>> {
-    const stdRes = new StandardResult<LocalFile>(201);
-
+  async createNewThumbForLocalFile(orgLocalFile: LocalFile, thumb: ThumbParam) {
     const tempNewThumbImageFile = path.resolve(
       this.env.DIR_TEMP,
       this.bs58.uid() + '.thumb.jpg',
@@ -198,14 +193,7 @@ export class LocalFilesMakeService {
         noValidation: true,
       },
     );
-    if (createThumbLocalFileRes.isBad) {
-      return stdRes.mergeBad(createThumbLocalFileRes);
-    }
 
-    await fs.remove(tempNewThumbImageFile);
-
-    stdRes.mergeGood(createThumbLocalFileRes);
-
-    return stdRes;
+    return createThumbLocalFileRes;
   }
 }

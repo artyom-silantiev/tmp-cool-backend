@@ -150,23 +150,14 @@ export class LocalFilesController {
     const query = req.query as { [key: string]: string };
     const localFilesRequest = this.parseSha256Param(sha256Param, query);
 
-    const getLocalFileRes =
+    const localFileMeta =
       await this.localFilesOutput.getLocalFilePathByLocalFilesRequest(
         localFilesRequest,
       );
-    if (getLocalFileRes.isBad) {
-      console.error(getLocalFileRes.errData);
-      res.status(getLocalFileRes.code).send('');
-      return;
-    }
-    const localFile = getLocalFileRes.data;
 
-    const ipfsCacheItemHeaders = this.getHeadersForLocalFile(localFile);
-    res.set(ipfsCacheItemHeaders);
-
+    const ipfsCacheItemHeaders = this.getHeadersForLocalFile(localFileMeta);
+    res.status(localFileMeta.status).set(ipfsCacheItemHeaders);
     res.send('');
-
-    return;
   }
 
   @Get('sha256/:sha256Param')
@@ -185,21 +176,15 @@ export class LocalFilesController {
 
     console.log('getBySha256', localFilesRequest);
 
-    const getLocalFileRes =
+    const localFileMeta =
       await this.localFilesOutput.getLocalFilePathByLocalFilesRequest(
         localFilesRequest,
       );
-    if (getLocalFileRes.isBad) {
-      console.error('getLocalFileRes.errData', getLocalFileRes.errData);
-      res.status(getLocalFileRes.code).send('');
-      return;
-    }
-    const localFile = getLocalFileRes.data;
 
-    const ipfsCacheItemHeaders = this.getHeadersForLocalFile(localFile);
-    res.set(ipfsCacheItemHeaders);
+    const ipfsCacheItemHeaders = this.getHeadersForLocalFile(localFileMeta);
+    res.status(localFileMeta.status).set(ipfsCacheItemHeaders);
 
-    return new StreamableFile(fs.createReadStream(localFile.absPathToFile));
+    return new StreamableFile(fs.createReadStream(localFileMeta.absPathToFile));
   }
 
   @Head('sha256/:sha256/:args')
@@ -221,23 +206,14 @@ export class LocalFilesController {
       query,
     );
 
-    const getLocalFileRes =
+    const localFileMeta =
       await this.localFilesOutput.getLocalFilePathByLocalFilesRequest(
         localFilesRequest,
       );
-    if (getLocalFileRes.isBad) {
-      console.error(getLocalFileRes.errData);
-      res.status(getLocalFileRes.code).send('');
-      return;
-    }
-    const localFile = getLocalFileRes.data;
 
-    const ipfsCacheItemHeaders = this.getHeadersForLocalFile(localFile);
-    res.set(ipfsCacheItemHeaders);
-
+    const ipfsCacheItemHeaders = this.getHeadersForLocalFile(localFileMeta);
+    res.status(localFileMeta.status).set(ipfsCacheItemHeaders);
     res.send('');
-
-    return;
   }
 
   @Get('sha256/:sha256/:args')
@@ -259,20 +235,14 @@ export class LocalFilesController {
       query,
     );
 
-    const getLocalFileRes =
+    const localFileMeta =
       await this.localFilesOutput.getLocalFilePathByLocalFilesRequest(
         localFilesRequest,
       );
-    if (getLocalFileRes.isBad) {
-      console.error(getLocalFileRes.errData);
-      res.status(getLocalFileRes.code).send('');
-      return;
-    }
-    const localFile = getLocalFileRes.data;
 
-    const ipfsCacheItemHeaders = this.getHeadersForLocalFile(localFile);
-    res.set(ipfsCacheItemHeaders);
+    const ipfsCacheItemHeaders = this.getHeadersForLocalFile(localFileMeta);
+    res.status(localFileMeta.status).set(ipfsCacheItemHeaders);
 
-    return new StreamableFile(fs.createReadStream(localFile.absPathToFile));
+    return new StreamableFile(fs.createReadStream(localFileMeta.absPathToFile));
   }
 }

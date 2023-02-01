@@ -24,22 +24,15 @@ export class LocalFilesInputService {
   async uploadImageByFile(imageFile: string) {
     const stdRes = new StandardResult<Image>();
 
-    const localFileRes = await this.localFilesMake.createLocalFileByFile(
+    const localFileWrap = await this.localFilesMake.createLocalFileByFile(
       imageFile,
     );
 
-    let code = 201;
-    let localFile: LocalFile;
-    if (localFileRes.isGood) {
-      code = localFileRes.code;
-      localFile = localFileRes.data;
-    } else {
-      return stdRes.setCode(code).setErrData({ errors: localFileRes.errData });
-    }
+    const image = await this.imageRepository.createByLocalFile(
+      localFileWrap.localFile,
+    );
 
-    const image = await this.imageRepository.createByLocalFile(localFile);
-
-    return stdRes.setCode(code).setData(image);
+    return { status: 201, image };
   }
 
   async uploadImageByMulter(imageFile: Express.Multer.File) {
