@@ -12,7 +12,7 @@ import { useCacheLocalFile } from '@share/lib/cache/local-file';
 const asyncExec = promisify(exec);
 async function sh(cmd: string) {
   console.log('cmd: ', cmd);
-  await asyncExec(cmd);
+  return await asyncExec(cmd);
 }
 
 const env = useEnv();
