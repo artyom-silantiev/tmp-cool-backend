@@ -231,7 +231,7 @@ export class UserController {
 
     const uploadImageRes =
       await this.localFilesInputService.uploadImageByMulter(imageFile);
-    const image = uploadImageRes.image;
+    const image = uploadImageRes.imageRef;
     const status = uploadImageRes.status;
 
     const updatedUser = await this.userRepository.updateByModel(user, {
@@ -239,7 +239,6 @@ export class UserController {
     });
 
     if (oldImage) {
-      console.log('oldImage', oldImage);
       await this.clearData.deleteImageById(oldImage);
     }
 

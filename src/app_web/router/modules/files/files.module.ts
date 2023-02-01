@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { LocalFilesModule } from '@share/modules/local_files/local_files.module';
-import { LocalFilesController } from './local_files.controller';
+import { FilesController } from './files.controller';
 
 @Module({
   imports: [LocalFilesModule],
-  controllers: [LocalFilesController],
+  controllers: [FilesController],
 })
-export class LocalFilesRouteModule {}
+export class FilesRouteModule {}

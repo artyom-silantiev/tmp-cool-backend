@@ -4,7 +4,7 @@ import { RouterModule } from '@nestjs/core';
 import { CommonModule } from './modules/common/common.module';
 import { GuestModule } from './modules/guest/guest.module';
 import { UserModule } from './modules/user/user.module';
-import { LocalFilesRouteModule } from './modules/local_files/local_files.module';
+import { FilesRouteModule } from './modules/files/files.module';
 import { AuthModule } from '@share/modules/auth/auth.module';
 
 import { useEnv } from '@share/lib/env/env';
@@ -25,7 +25,7 @@ import { BackupsModule } from './modules/admin/backups/backups.module';
     CommonModule,
     GuestModule,
     UserModule,
-    LocalFilesRouteModule,
+    FilesRouteModule,
     BackupsModule,
 
     RouterModule.register([
@@ -42,8 +42,8 @@ import { BackupsModule } from './modules/admin/backups/backups.module';
         module: UserModule,
       },
       {
-        path: 'local_files',
-        module: LocalFilesRouteModule,
+        path: 'files',
+        module: FilesRouteModule,
       },
     ]),
 

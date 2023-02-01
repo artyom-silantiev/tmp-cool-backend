@@ -3,14 +3,14 @@ import { PrismaService } from '../prisma.service';
 import { User, Prisma, UserRole, Jwt, Setting } from '@prisma/client';
 import * as lodash from 'lodash';
 import { Enumerable } from '@share/support.types';
-import { ImageRow } from './image.repository';
 import { useBcrypt } from '@share/lib/bcrypt';
 import { useBs58 } from '@share/lib/bs58';
+import { FileRefRow } from './file_ref.repository';
 
 export type UserRow = User & {
-  Image?: ImageRow;
-  Jwt?: Jwt[];
-  Settings?: Setting[];
+  image?: FileRefRow;
+  jwt?: Jwt[];
+  settings?: Setting[];
 };
 
 export interface UserGeo {
@@ -33,7 +33,7 @@ export class UserView {
   email: string;
   firstName: string;
   lastName: string;
-  imageSha256: string;
+  imageUid: string;
 
   // private data
   phone?: string;
@@ -43,10 +43,7 @@ export class UserView {
     const modelView = Object.assign(new UserView(), {
       id: model.id.toString(),
       email: model.email,
-      imageSha256:
-        model.Image && model.Image.LocalFile
-          ? model.Image.LocalFile.sha256
-          : null,
+      imageUid: model.image && model.image.file ? model.image.uid : null,
     }) as UserView;
 
     if (viewType === UserViewType.PRIVATE) {
@@ -121,12 +118,12 @@ export class UserRepository {
 
   includeImage() {
     return {
-      Image: {
+      image: {
         include: {
-          LocalFile: true,
+          file: true,
         },
       },
-    };
+    }; // as Prisma.UserInclude;
   }
 
   whereNotDeleted() {

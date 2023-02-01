@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { ImageRepository } from '@db/repositories/image.repository';
 import * as _ from 'lodash';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import { LocalFilesMakeService } from './local_files-make.service';
 import { useEnv } from '@share/lib/env/env';
 import { useBs58 } from '@share/lib/bs58';
+import { FileRefRepository } from '@db/repositories/file_ref.repository';
 
 @Injectable()
 export class LocalFilesInputService {
@@ -13,22 +13,18 @@ export class LocalFilesInputService {
   private bs58 = useBs58();
 
   constructor(
-    private imageRepository: ImageRepository,
+    private fileRefRepository: FileRefRepository,
     private localFilesMake: LocalFilesMakeService,
   ) {}
 
   async init() {}
 
   async uploadImageByFile(imageFile: string) {
-    const localFileWrap = await this.localFilesMake.createLocalFileByFile(
-      imageFile,
-    );
+    const fileWrap = await this.localFilesMake.createFileDb(imageFile);
 
-    const image = await this.imageRepository.createByLocalFile(
-      localFileWrap.localFile,
-    );
+    const imageRef = await this.fileRefRepository.createByFile(fileWrap.file);
 
-    return { status: 201, image };
+    return { status: 201, imageRef };
   }
 
   async uploadImageByMulter(imageFile: Express.Multer.File) {

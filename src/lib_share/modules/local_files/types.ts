@@ -1,6 +1,6 @@
-import { LocalFile } from '@prisma/client';
+import { File } from '@prisma/client';
 
-export type LocalFileWrap = {
+export type FileWrap = {
   status: number;
-  localFile: LocalFile;
+  file: File;
 };

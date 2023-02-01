@@ -3,23 +3,23 @@ export type ThumbParam = {
   name: string | null;
 };
 
-export type LocalFilesRequestType = 'video' | 'image' | 'audio';
+export type FileRefRequestType = 'video' | 'image' | 'audio';
 
-export class LocalFilesRequest {
-  type = null as LocalFilesRequestType | null;
+export class FileRefRequest {
+  type = null as FileRefRequestType | null;
   format = null as string | null;
-  sha256: string;
+  uid: string;
   thumb: ThumbParam;
 
   constructor(
-    sha256: string,
+    uid: string,
     params?: {
-      type?: LocalFilesRequestType | null;
+      type?: FileRefRequestType | null;
       format?: string | null;
       thumb?: ThumbParam;
     },
   ) {
-    this.sha256 = sha256;
+    this.uid = uid;
     if (params) {
       if (params.type) {
         this.type = params.type;

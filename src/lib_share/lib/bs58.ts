@@ -91,3 +91,6 @@ const _bs58 = new Bs58();
 export function useBs58() {
   return _bs58;
 }
+
+const uid = useBs58().uid();
+console.log('uid', uid, uid.length);

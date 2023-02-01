@@ -8,10 +8,7 @@ CREATE TYPE "JwtType" AS ENUM ('USER_AUTH', 'USER_ACTIVATION', 'USER_RECOVERY');
 CREATE TYPE "TaskType" AS ENUM ('SEND_EMAIL');
 
 -- CreateEnum
-CREATE TYPE "ImageStorage" AS ENUM ('LocalFile');
-
--- CreateEnum
-CREATE TYPE "MediaType" AS ENUM ('IMAGE', 'VIDEO', 'AUDIO');
+CREATE TYPE "MediaType" AS ENUM ('OTHER', 'IMAGE', 'VIDEO', 'AUDIO');
 
 -- CreateTable
 CREATE TABLE "Seed" (
@@ -87,18 +84,18 @@ CREATE TABLE "Task" (
 );
 
 -- CreateTable
-CREATE TABLE "Image" (
+CREATE TABLE "FileRef" (
     "id" BIGSERIAL NOT NULL,
-    "storage" "ImageStorage" NOT NULL,
-    "localFileId" BIGINT,
+    "uid" VARCHAR(20) NOT NULL,
+    "fileId" BIGINT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "Image_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "FileRef_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "LocalFile" (
+CREATE TABLE "File" (
     "id" BIGSERIAL NOT NULL,
     "sha256" VARCHAR(64) NOT NULL,
     "mime" VARCHAR(255) NOT NULL,
@@ -108,22 +105,11 @@ CREATE TABLE "LocalFile" (
     "durationSec" INTEGER,
     "pathToFile" VARCHAR(255) NOT NULL,
     "type" "MediaType" NOT NULL,
-    "isThumb" BOOLEAN NOT NULL DEFAULT false,
     "isBanned" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "LocalFile_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "LocalFileThumb" (
-    "id" BIGSERIAL NOT NULL,
-    "orgLocalFileId" BIGINT NOT NULL,
-    "thumbLocalFileId" BIGINT NOT NULL,
-    "thumbName" VARCHAR(32) NOT NULL,
-
-    CONSTRAINT "LocalFileThumb_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "File_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -154,25 +140,16 @@ CREATE INDEX "Task_type_idx" ON "Task"("type");
 CREATE INDEX "Task_isActive_idx" ON "Task"("isActive");
 
 -- CreateIndex
-CREATE INDEX "LocalFile_sha256_idx" ON "LocalFile"("sha256");
+CREATE UNIQUE INDEX "FileRef_uid_key" ON "FileRef"("uid");
 
 -- CreateIndex
-CREATE INDEX "LocalFileThumb_thumbLocalFileId_idx" ON "LocalFileThumb"("thumbLocalFileId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "LocalFileThumb_orgLocalFileId_thumbName_key" ON "LocalFileThumb"("orgLocalFileId", "thumbName");
+CREATE INDEX "File_sha256_idx" ON "File"("sha256");
 
 -- AddForeignKey
-ALTER TABLE "User" ADD CONSTRAINT "User_imageId_fkey" FOREIGN KEY ("imageId") REFERENCES "Image"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "User" ADD CONSTRAINT "User_imageId_fkey" FOREIGN KEY ("imageId") REFERENCES "FileRef"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Jwt" ADD CONSTRAINT "Jwt_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Image" ADD CONSTRAINT "Image_localFileId_fkey" FOREIGN KEY ("localFileId") REFERENCES "LocalFile"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "LocalFileThumb" ADD CONSTRAINT "LocalFileThumb_orgLocalFileId_fkey" FOREIGN KEY ("orgLocalFileId") REFERENCES "LocalFile"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "LocalFileThumb" ADD CONSTRAINT "LocalFileThumb_thumbLocalFileId_fkey" FOREIGN KEY ("thumbLocalFileId") REFERENCES "LocalFile"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "FileRef" ADD CONSTRAINT "FileRef_fileId_fkey" FOREIGN KEY ("fileId") REFERENCES "File"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

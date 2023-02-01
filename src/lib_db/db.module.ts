@@ -3,9 +3,9 @@ import { PrismaService } from './prisma.service';
 import { UserRepository } from './repositories/user.repository';
 import { JwtRepository } from './repositories/jwt.repository';
 import { TaskRepository } from './repositories/task.repository';
-import { LocalFileRepository } from './repositories/local-file.repository';
-import { ImageRepository } from './repositories/image.repository';
+import { FileRepository } from './repositories/file.repository';
 import { SettingRepository } from './repositories/setting.repository';
+import { FileRefRepository } from './repositories/file_ref.repository';
 
 @Module({
   providers: [
@@ -13,8 +13,8 @@ import { SettingRepository } from './repositories/setting.repository';
     SettingRepository,
     JwtRepository,
     TaskRepository,
-    LocalFileRepository,
-    ImageRepository,
+    FileRepository,
+    FileRefRepository,
     UserRepository,
   ],
   exports: [
@@ -22,9 +22,9 @@ import { SettingRepository } from './repositories/setting.repository';
     SettingRepository,
     JwtRepository,
     TaskRepository,
-    LocalFileRepository,
-    ImageRepository,
+    FileRepository,
+    FileRefRepository,
     UserRepository,
   ],
 })
-export class DbModule { }
+export class DbModule {}

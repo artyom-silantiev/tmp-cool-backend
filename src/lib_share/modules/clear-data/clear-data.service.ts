@@ -1,6 +1,6 @@
 import { PrismaService } from '@db/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { ImageStorage, MediaType } from '@prisma/client';
+import { MediaType } from '@prisma/client';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { useEnv } from '@share/lib/env/env';
@@ -10,9 +10,7 @@ import { LocalFilesDefs } from '../local_files/defs';
 export class ClearDataService {
   private env = useEnv();
 
-  constructor(
-    private prisma: PrismaService,
-  ) { }
+  constructor(private prisma: PrismaService) {}
 
   async safeDeleteUserById(userId: bigint) {
     const user = await this.prisma.user.findFirst({
@@ -20,7 +18,7 @@ export class ClearDataService {
         id: userId,
       },
       include: {
-        Image: true,
+        image: true,
       },
     });
 
@@ -28,8 +26,8 @@ export class ClearDataService {
       throw new Error('user not found');
     }
 
-    if (user.Image) {
-      await this.deleteImageById(user.Image.id);
+    if (user.image) {
+      await this.deleteImageById(user.image.id);
     }
 
     await this.prisma.jwt.deleteMany({
@@ -50,107 +48,56 @@ export class ClearDataService {
   }
 
   async deleteImageById(imageId: bigint) {
-    const image = await this.prisma.image.findUnique({
+    const image = await this.prisma.fileRef.findUnique({
       where: {
         id: imageId,
       },
       include: {
-        LocalFile: true,
+        file: true,
       },
     });
 
-    await this.prisma.image.delete({
+    await this.prisma.fileRef.delete({
       where: {
         id: image.id,
       },
     });
 
-    if (image.storage === ImageStorage.LocalFile) {
-      await this.tryDeleteLocalFileById(image.LocalFile.id);
-    }
+    await this.tryDeleteFileDbById(image.file.id);
   }
 
-  async tryDeleteLocalFileById(
-    localFileId: bigint,
+  async tryDeleteFileDbById(
+    fileDbId: bigint,
     params?: {
       ignoreImageId?: bigint;
-      ignoreThumbOrgId?: bigint;
     },
   ) {
-    const localFile = await this.prisma.localFile.findFirst({
+    const file = await this.prisma.file.findFirst({
       where: {
-        id: localFileId,
+        id: fileDbId,
       },
       include: {
-        Images: true,
-        ThumbsAsOrg: {
-          where: {
-            orgLocalFileId: {
-              not: localFileId,
-            },
-          },
-        },
+        refs: true,
       },
     });
 
-    let localFileImages = localFile.Images ? localFile.Images : [];
+    let fileRefs = file.refs ? file.refs : [];
     if (params && params.ignoreImageId) {
-      localFileImages = localFileImages.filter(
-        (v) => v.id !== params.ignoreImageId,
-      );
+      fileRefs = fileRefs.filter((v) => v.id !== params.ignoreImageId);
     }
 
-    let localFilesThumbsOrg = localFile.ThumbsAsOrg
-      ? localFile.ThumbsAsOrg
-      : [];
-    if (params && params.ignoreThumbOrgId) {
-      localFilesThumbsOrg = localFilesThumbsOrg.filter(
-        (v) => v.id !== params.ignoreThumbOrgId,
-      );
-    }
+    console.log('fileRefs', fileRefs);
 
-    if (localFileImages.length > 0 || localFilesThumbsOrg.length > 0) {
+    if (fileRefs.length > 0) {
       return false;
     }
 
-    // delete thumbs ...
-    if (localFile.type === MediaType.IMAGE && !localFile.isThumb) {
-      const localFileThumbs = await this.prisma.localFileThumb.findMany({
-        where: {
-          orgLocalFileId: localFile.id,
-        },
-      });
-
-      for (const localFileThumb of localFileThumbs) {
-        await this.tryDeleteLocalFileById(localFileThumb.thumbLocalFileId, {
-          ignoreThumbOrgId: localFile.id,
-        });
-      }
-
-      await this.prisma.localFileThumb.deleteMany({
-        where: {
-          orgLocalFileId: localFile.id,
-        },
-      });
-    }
-
-    if (localFile.isThumb) {
-      await this.prisma.localFileThumb.deleteMany({
-        where: {
-          thumbLocalFileId: localFile.id,
-        },
-      });
-    }
-
-    const absPathToFile = path.resolve(
-      LocalFilesDefs.DIR,
-      localFile.pathToFile,
-    );
+    const absPathToFile = path.resolve(LocalFilesDefs.DIR, file.pathToFile);
     await fs.remove(absPathToFile);
 
-    await this.prisma.localFile.delete({
+    await this.prisma.file.delete({
       where: {
-        id: localFile.id,
+        id: file.id,
       },
     });
   }
