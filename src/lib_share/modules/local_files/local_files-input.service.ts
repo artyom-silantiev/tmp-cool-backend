@@ -1,6 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Image, LocalFile } from '@prisma/client';
-import { StandardResult } from '@share/standard-result.class';
 import { ImageRepository } from '@db/repositories/image.repository';
 import * as _ from 'lodash';
 import * as path from 'path';
@@ -22,8 +20,6 @@ export class LocalFilesInputService {
   async init() {}
 
   async uploadImageByFile(imageFile: string) {
-    const stdRes = new StandardResult<Image>();
-
     const localFileWrap = await this.localFilesMake.createLocalFileByFile(
       imageFile,
     );

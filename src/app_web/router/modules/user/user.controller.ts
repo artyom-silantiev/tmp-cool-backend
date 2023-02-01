@@ -239,6 +239,7 @@ export class UserController {
     });
 
     if (oldImage) {
+      console.log('oldImage', oldImage);
       await this.clearData.deleteImageById(oldImage);
     }
 

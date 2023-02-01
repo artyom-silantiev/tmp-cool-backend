@@ -1,6 +1,5 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { LocalFile, MediaType } from '@prisma/client';
-import { StandardResult } from '@share/standard-result.class';
 
 import * as moment from 'moment';
 import * as _ from 'lodash';
@@ -39,8 +38,12 @@ export class LocalFilesMakeService {
   ): Promise<LocalFileWrap> {
     const fileSha256Hash = await getFileSha256(tempFile);
 
-    let localFileWrap: LocalFileWrap =
-      await this.localFileRepository.getLocalFileBySha256Hash(fileSha256Hash);
+    let localFileWrap: LocalFileWrap;
+    try {
+      localFileWrap = await this.localFileRepository.getLocalFileBySha256Hash(
+        fileSha256Hash,
+      );
+    } catch {}
     if (localFileWrap) {
       await fs.remove(tempFile);
       return { ...localFileWrap, ...{ status: 208 } };
@@ -106,7 +109,7 @@ export class LocalFilesMakeService {
     const locPathToFile = path.join(locDirForFile, fileSha256Hash);
     const absPathToFile = path.resolve(absDirForFile, fileSha256Hash);
     await fs.mkdirs(absDirForFile);
-    await fs.move(tempFile, absPathToFile);
+    await fs.move(tempFile, absPathToFile, { overwrite: true });
 
     let localFile: LocalFile;
     if (params && params.thumbData) {

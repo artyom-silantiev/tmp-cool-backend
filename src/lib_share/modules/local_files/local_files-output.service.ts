@@ -1,6 +1,5 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { LocalFilesRequest } from './local_files_request';
-import { StandardResult } from '@share/standard-result.class';
 import { LocalFilesMakeService } from './local_files-make.service';
 import { LocalFile, MediaType } from '@prisma/client';
 import { LocalFileRepository } from '@db/repositories/local-file.repository';

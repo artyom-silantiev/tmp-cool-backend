@@ -174,8 +174,6 @@ export class LocalFilesController {
     const query = req.query as { [key: string]: string };
     const localFilesRequest = this.parseSha256Param(sha256Param, query);
 
-    console.log('getBySha256', localFilesRequest);
-
     const localFileMeta =
       await this.localFilesOutput.getLocalFilePathByLocalFilesRequest(
         localFilesRequest,
