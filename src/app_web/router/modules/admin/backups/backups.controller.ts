@@ -11,7 +11,7 @@ import { BackupsService } from './backups.service';
 import express from 'express';
 import { AuthGuard } from '@share/modules/auth/auth.guard';
 import { ACL, AclScopes } from '@share/modules/auth/acl.decorator';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiParam, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('backups')
 @Controller()
@@ -27,6 +27,7 @@ export class BackupsController {
     return await this.backupsService.getBackups();
   }
 
+  @ApiParam({ name: 'name', required: true })
   @Get(':name')
   async downloadBackup(@Res() res: express.Response, @Param() params) {
     const absBackupFile = await this.backupsService.getAbsBackupFile(
@@ -41,12 +42,14 @@ export class BackupsController {
     return backupFileInfo;
   }
 
+  @ApiParam({ name: 'name', required: true })
   @Post(':name')
   async restoreFromBackup(@Param() params) {
     await this.backupsService.restoreFromBackup(params.name);
     return `restored from ${params.name}`;
   }
 
+  @ApiParam({ name: 'name', required: true })
   @Delete(':name')
   async deleteBackup(@Param() params) {
     await this.backupsService.deleteBackupFile(params.name);

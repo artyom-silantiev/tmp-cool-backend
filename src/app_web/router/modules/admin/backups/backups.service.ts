@@ -1,7 +1,7 @@
 import { promisify } from 'node:util';
 import { exec } from 'node:child_process';
 import { useEnv } from '@share/lib/env/env';
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import * as path from 'node:path';
 import * as AdmZip from 'adm-zip';
 import * as moment from 'moment';
@@ -26,6 +26,8 @@ function getBackUpFileInfo(backupFileName: string) {
   return backupFileInfo;
 }
 type BackupFileInfo = ReturnType<typeof getBackUpFileInfo>;
+
+const DB_DUMP_NAME = 'dump.sql';
 
 @Injectable()
 export class BackupsService {
@@ -65,39 +67,35 @@ export class BackupsService {
   }
 
   private async createDbDump() {
-    const dumpSqlFile = path.resolve(env.DIR_TEMP, `dump.sql`);
+    const dumpFile = path.resolve(env.DIR_TEMP, DB_DUMP_NAME);
 
     const cmd = [
       'docker exec',
       `-t ${env.POSTGRES_HOST}`,
-      'pg_dump',
-      '--no-owner',
-      `-U ${env.POSTGRES_USER}`,
-      `-d ${env.POSTGRES_DB}`,
-      `> ${dumpSqlFile}`,
+      `pg_dump -U ${env.POSTGRES_USER} -d ${env.POSTGRES_DB}`,
+      `> ${dumpFile}`,
     ].join(' ');
 
     await asyncExec(cmd);
 
-    return dumpSqlFile;
+    return dumpFile;
   }
 
   async createBackup() {
-    const dumpSqlFile = await this.createDbDump();
+    const dumpFile = await this.createDbDump();
 
     const zip = new AdmZip();
-    await zip.addLocalFile(dumpSqlFile);
+    await zip.addLocalFile(dumpFile);
     await zip.addLocalFolder(env.DIR_DATA, './data');
-    await fs.remove(dumpSqlFile);
+    await fs.remove(dumpFile);
 
-    const dataZip = path.resolve(
-      env.DIR_BACKUPS,
-      `backup-${moment().format('YYYY-MM-DD-HH-mm-ss')}.zip`,
-    );
+    const curDate = moment().format('YYYY-MM-DD-HH-mm-ss');
+    const backupFileName = `backup-${curDate}.zip`;
+    const backupFile = path.resolve(env.DIR_BACKUPS, backupFileName);
 
-    await zip.writeZip(dataZip);
+    await zip.writeZip(backupFile);
 
-    const backupFileInfo = getBackUpFileInfo(dataZip);
+    const backupFileInfo = getBackUpFileInfo(backupFileName);
 
     return backupFileInfo;
   }
@@ -109,26 +107,34 @@ export class BackupsService {
     const zip = new AdmZip(absBackupFile);
     await zip.extractAllTo(backupDir);
 
-    await this.restoreDataDir(backupDir);
-    await this.restoreFromSqlDump(backupDir);
-    await this.clearRedisCache();
+    try {
+      await this.restoreDataDir(backupDir);
+      await this.restoreFromSqlDump(backupDir);
+      await this.clearRedisCache();
+    } catch (error) {
+      console.error(error);
+      await fs.remove(backupDir);
+      throw new HttpException('', 500);
+    }
 
     await fs.remove(backupDir);
   }
 
   private async restoreFromSqlDump(backupDir: string) {
-    const dumpSqlFile = path.resolve(backupDir, 'dump.sql');
+    const dumpFile = path.resolve(backupDir, DB_DUMP_NAME);
 
-    const cmd = [
-      `cat ${dumpSqlFile} |`,
-      'docker exec',
-      `-i ${env.POSTGRES_HOST}`,
-      'psql',
-      `-U ${env.POSTGRES_USER}`,
-      `-d ${env.POSTGRES_DB}`,
-    ].join(' ');
+    const cmds = [
+      `docker cp ${dumpFile} ${env.POSTGRES_HOST}:/var`,
+      `docker exec -i ${env.POSTGRES_HOST} dropdb -f -U ${env.POSTGRES_USER} ${env.POSTGRES_DB}`,
+      `docker exec -i ${env.POSTGRES_HOST} createdb -U ${env.POSTGRES_USER} ${env.POSTGRES_DB}`,
+      `docker exec -i ${env.POSTGRES_HOST} psql -U ${env.POSTGRES_USER} -d ${env.POSTGRES_DB} -f /var/${DB_DUMP_NAME}`,
+      `docker exec -i ${env.POSTGRES_HOST} rm /var/${DB_DUMP_NAME}`,
+    ];
 
-    await asyncExec(cmd);
+    for (const cmd of cmds) {
+      console.log('cmd:', cmd);
+      await asyncExec(cmd);
+    }
   }
 
   private async restoreDataDir(backupDir: string) {
@@ -148,6 +154,9 @@ export class BackupsService {
     const redis = useRedis();
     const cacheLocalFile = useCacheLocalFile();
     const keys = await redis.keys(cacheLocalFile.prefixKey());
-    await redis.del(keys);
+    for (const key of keys) {
+      console.log('key', key);
+      await redis.del(key);
+    }
   }
 }
