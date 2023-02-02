@@ -15,7 +15,7 @@ import {
   FileMeta,
   FilesOutputService,
 } from '@share/modules/files/files-output.service';
-import { FileRefRequest } from '@share/modules/files/files_request';
+import { FileRequest } from '@share/modules/files/files_request';
 
 export class ByUidParamDto {
   @IsString()
@@ -39,12 +39,12 @@ export class FilesController {
   constructor(private filesOutput: FilesOutputService) {}
 
   parseUid(uidParam: string, query: { [key: string]: string }) {
-    let fileRefRequest: FileRefRequest;
+    let fileRefRequest: FileRequest;
 
     let match = uidParam.match(/^([0-9a-fA-Z]*)(\.(\w+))$/);
     if (match) {
       const uid = match[1];
-      fileRefRequest = new FileRefRequest(uid);
+      fileRefRequest = new FileRequest(uid);
       fileRefRequest.format = match[3];
     }
 
@@ -52,7 +52,7 @@ export class FilesController {
     if (!fileRefRequest && match) {
       const uid = match[1];
 
-      fileRefRequest = new FileRefRequest(uid);
+      fileRefRequest = new FileRequest(uid);
 
       if (match[3]) {
         const temp = match[3];
@@ -68,7 +68,7 @@ export class FilesController {
     match = uidParam.match(/^([0-9a-fA-Z]*)(\:(fullhd))?$/);
     if (!fileRefRequest && match) {
       const uid = match[1];
-      fileRefRequest = new FileRefRequest(uid);
+      fileRefRequest = new FileRequest(uid);
       if (match[3]) {
         fileRefRequest.thumb = {
           type: 'name',
@@ -78,7 +78,7 @@ export class FilesController {
     }
 
     if (!fileRefRequest) {
-      fileRefRequest = new FileRefRequest(uidParam);
+      fileRefRequest = new FileRequest(uidParam);
     }
 
     if (query.w) {
@@ -101,29 +101,29 @@ export class FilesController {
     args: string,
     query: { [key: string]: string },
   ) {
-    const fileRefRequest = new FileRefRequest(uid);
+    const fileRequest = new FileRequest(uid);
 
     const match = args.match(/^(image|video)(\.(\w+))?$/);
     if (match) {
-      fileRefRequest.type = match[1] as 'image' | 'video';
+      fileRequest.type = match[1] as 'image' | 'video';
       if (match[3]) {
-        fileRefRequest.format = match[3];
+        fileRequest.format = match[3];
       }
     }
 
     if (query.w) {
-      fileRefRequest.thumb = {
+      fileRequest.thumb = {
         type: 'width',
         name: query.w,
       };
     } else if (query.n) {
-      fileRefRequest.thumb = {
+      fileRequest.thumb = {
         type: 'name',
         name: query.n,
       };
     }
 
-    return fileRefRequest;
+    return fileRequest;
   }
 
   getHeadersForFile(fileDbMeta: FileMeta) {
@@ -169,8 +169,6 @@ export class FilesController {
     @Res({ passthrough: true }) res: Response,
     @Req() req: Request,
   ) {
-    console.log('getByUid', req.params['uid']);
-
     const uid = req.params['uid'];
     const query = req.query as { [key: string]: string };
     const fileRefRequest = this.parseUid(uid, query);

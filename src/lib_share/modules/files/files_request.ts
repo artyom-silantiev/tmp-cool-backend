@@ -9,10 +9,10 @@ export type ThumbParam = {
 };
 
 const env = useEnv();
-export type FileRefRequestType = 'video' | 'image' | 'audio';
+export type FileRequestType = 'video' | 'image' | 'audio';
 
-export class FileRefRequest {
-  type = null as FileRefRequestType | null;
+export class FileRequest {
+  type = null as FileRequestType | null;
   format = null as string | null;
   uid: string;
   thumb: ThumbParam;
@@ -20,7 +20,7 @@ export class FileRefRequest {
   constructor(
     uid: string,
     params?: {
-      type?: FileRefRequestType | null;
+      type?: FileRequestType | null;
       format?: string | null;
       thumb?: ThumbParam;
     },
@@ -41,7 +41,7 @@ export class FileRefRequest {
 
   normalizeThumb(width: number, height: number) {
     if (this.thumb.type === 'width') {
-      this.thumb.name = FileRefRequest.parseThumbSize(
+      this.thumb.name = FileRequest.parseThumbSize(
         parseInt(this.thumb.name),
         width,
         env.LOCAL_FILES_CACHE_MIN_THUMB_LOG_SIZE,

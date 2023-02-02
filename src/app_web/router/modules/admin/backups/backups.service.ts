@@ -7,7 +7,7 @@ import * as AdmZip from 'adm-zip';
 import * as moment from 'moment';
 import * as fs from 'fs-extra';
 import { useRedis } from '@share/lib/redis';
-import { useCacheLocalFile } from '@share/lib/cache/local-file';
+import { useClusterStuff } from '@share/lib/cache/cluster-stuff';
 
 const asyncExec = promisify(exec);
 async function sh(cmd: string) {
@@ -160,10 +160,14 @@ export class BackupsService {
 
   private async clearRedisCache() {
     const redis = useRedis();
-    const cacheLocalFile = useCacheLocalFile();
-    const keys = await redis.keys(cacheLocalFile.prefixKey());
+
+    const clusterStuff = useClusterStuff();
+    const prefixKey = clusterStuff.getPrefixKey();
+
+    let keys = await redis.keys('*');
+    keys = keys.filter((v) => !v.startsWith(prefixKey));
+
     for (const key of keys) {
-      console.log('key', key);
       await redis.del(key);
     }
   }

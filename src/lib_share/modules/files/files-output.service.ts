@@ -1,5 +1,5 @@
 import { HttpException, Injectable } from '@nestjs/common';
-import { FileRefRequest } from './files_request';
+import { FileRequest } from './files_request';
 import { FilesMakeService } from './files-make.service';
 import { File, MediaType } from '@prisma/client';
 import { FileRepository } from '@db/repositories/file.repository';
@@ -8,7 +8,7 @@ import * as _ from 'lodash';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import { useEnv } from '@share/lib/env/env';
-import { useCacheLocalFile } from '@share/lib/cache/local-file';
+import { useCacheFiles } from '@share/lib/cache/local-file';
 import { FilesDefs } from './defs';
 
 export type FileMeta = {
@@ -29,7 +29,7 @@ const env = useEnv();
 
 @Injectable()
 export class FilesOutputService {
-  private cacheFileDb = useCacheLocalFile();
+  private cacheFileDb = useCacheFiles();
 
   constructor(
     private prisma: PrismaService,
@@ -55,7 +55,7 @@ export class FilesOutputService {
     return fileMeta;
   }
 
-  async getFileDbPathByFileRefRequest(fileRefRequest: FileRefRequest) {
+  async getFileDbPathByFileRefRequest(fileRefRequest: FileRequest) {
     const uid = fileRefRequest.uid;
 
     const cacheFileDbMetaRaw = await this.cacheFileDb.get(fileRefRequest);
@@ -67,8 +67,6 @@ export class FilesOutputService {
     const tmpFileRef = await this.fileRepository.getFileRefDbByUid(uid);
     let fileMeta: FileMeta;
     let status = tmpFileRef.status;
-
-    console.log('fileRefRequest.thumb', fileRefRequest.thumb);
 
     if (fileRefRequest.thumb) {
       if (tmpFileRef.file.type !== MediaType.IMAGE) {

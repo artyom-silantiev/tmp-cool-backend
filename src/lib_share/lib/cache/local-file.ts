@@ -1,34 +1,34 @@
 import { FileMeta } from '@share/modules/files/files-output.service';
-import { FileRefRequest } from '@share/modules/files/files_request';
+import { FileRequest } from '@share/modules/files/files_request';
 import { useRedis } from '../redis';
 
-const prefixKey = 'LocalFile:';
-class CacheLocalFile {
-  prefixKey() {
-    return `${prefixKey}:*`;
+const prefixKey = 'file';
+class CacheFiles {
+  getPrefixKey() {
+    return prefixKey;
   }
-  key(lfReq: FileRefRequest) {
-    let locaFileCache = `${prefixKey}:${lfReq.uid}`;
-    if (lfReq.thumb) {
-      locaFileCache += ':' + lfReq.thumb.name;
+  key(fileReq: FileRequest) {
+    let fileCache = `${prefixKey}:${fileReq.uid}`;
+    if (fileReq.thumb) {
+      fileCache += ':' + fileReq.thumb.name;
     }
-    return locaFileCache;
+    return fileCache;
   }
-  async get(lfReq: FileRefRequest) {
+  async get(lfReq: FileRequest) {
     const cacheKey = this.key(lfReq);
-    const localFileCacheKey = await useRedis().get(cacheKey);
-    return localFileCacheKey || null;
+    const fileCacheKey = await useRedis().get(cacheKey);
+    return fileCacheKey || null;
   }
-  async set(lfReq: FileRefRequest, localFileMeta: FileMeta) {
+  async set(lfReq: FileRequest, fileMeta: FileMeta) {
     const cacheKey = this.key(lfReq);
-    await useRedis().set(cacheKey, JSON.stringify(localFileMeta), 'EX', 300);
+    await useRedis().set(cacheKey, JSON.stringify(fileMeta), 'EX', 300);
   }
 }
 
-let cacheLocalFile: CacheLocalFile;
-export function useCacheLocalFile() {
-  if (!cacheLocalFile) {
-    cacheLocalFile = new CacheLocalFile();
+let cacheFiles: CacheFiles;
+export function useCacheFiles() {
+  if (!cacheFiles) {
+    cacheFiles = new CacheFiles();
   }
-  return cacheLocalFile;
+  return cacheFiles;
 }

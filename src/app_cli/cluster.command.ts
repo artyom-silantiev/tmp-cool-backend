@@ -18,7 +18,7 @@ export class ClusterCommand {
     [appUid: string]: (boolean) => void;
   };
 
-  constructor(private cliClusterApp: ClusterAppService) { }
+  constructor(private cliClusterApp: ClusterAppService) {}
 
   private async initCliClusterApp() {
     this.cliClusterApp.emitter.on('PONG', (appMessage: AppMessage) => {
@@ -50,8 +50,8 @@ export class ClusterCommand {
   private async getClusterApps() {
     const redisCli = useRedis();
 
-    const clusterAppPrefix = this.clusterStuff.getClusterAppPrefix();
-    const clusterAppKeys = await redisCli.keys(clusterAppPrefix);
+    const clusterAppPrefix = this.clusterStuff.getPrefixKey();
+    const clusterAppKeys = await redisCli.keys(`clusterAppPrefix:*`);
     const clusterAppsStatus = {} as {
       [appUid: string]: AppStatus;
     };

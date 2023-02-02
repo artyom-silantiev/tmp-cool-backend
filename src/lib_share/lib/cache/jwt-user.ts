@@ -1,9 +1,11 @@
 import { UserRole } from '@prisma/client';
 import { useRedis } from '../redis';
 
+const prefixKey = 'userJwc';
+
 class CacheJwtUser {
   key(userId: string) {
-    return `userJwc:${userId}`;
+    return `${prefixKey}:${userId}`;
   }
   async get(userId: string) {
     const cacheKey = this.key(userId);
