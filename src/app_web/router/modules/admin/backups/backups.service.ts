@@ -1,5 +1,3 @@
-import { promisify } from 'node:util';
-import { exec } from 'node:child_process';
 import { useEnv } from '@share/lib/env/env';
 import { HttpException, Injectable } from '@nestjs/common';
 import * as path from 'node:path';
@@ -8,12 +6,7 @@ import * as moment from 'moment';
 import * as fs from 'fs-extra';
 import { useRedis } from '@share/lib/redis';
 import { useClusterStuff } from '@share/lib/cache/cluster-stuff';
-
-const asyncExec = promisify(exec);
-async function sh(cmd: string) {
-  console.log('cmd: ', cmd);
-  return await asyncExec(cmd);
-}
+import { sh } from '@share/lib/sh';
 
 const env = useEnv();
 
