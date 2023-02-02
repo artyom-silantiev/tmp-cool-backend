@@ -146,12 +146,10 @@ export class UserController {
       },
     );
 
-    /*
     await this.mailer.sendUserChangeEmail({
       activationToken: userActivationData.token,
       userEmail: currentUser.email,
     });
-    */
 
     return {
       message: 'you have been sent an email to change your email address',
@@ -234,9 +232,6 @@ export class UserController {
     );
     const image = uploadImageRes.imageRef;
     const status = uploadImageRes.status;
-
-    console.log('aaa', uploadImageRes.imageRef);
-    console.log('bbb', user.image);
 
     const updatedUser = await this.userRepository.updateByModel(user, {
       imageId: image.id,

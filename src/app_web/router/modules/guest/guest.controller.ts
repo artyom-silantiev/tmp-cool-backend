@@ -47,7 +47,7 @@ export class GuestController {
     private mailer: SendEmailService,
     private jwtUserActivate: JwtUserActivationService,
     private jwtUserRecovery: JwtUserRecoveryService,
-  ) { }
+  ) {}
 
   /*
   @Get('')
@@ -81,6 +81,28 @@ export class GuestController {
 
     return grid.toWrapedResultRows(rowsResult, rowsTotal);
   }
+
+  @Get(':id')
+  @ApiOperation({
+    summary: ':id',
+  })
+  async getUserById(@Param() params: ByIdParamsDto) {
+    const userIdBI = BigInt(params.id);
+
+    const user = await this.userRepository.findFirst({
+      id: userIdBI,
+      role: UserRole.USER,
+      ...this.userRepository.whereNotDeleted(),
+    });
+
+    if (!user) {
+      throw new HttpException(ExErrors.Users.NotFound, HttpStatus.NOT_FOUND);
+    }
+
+    return {
+      user: this.userRepository.toView(user),
+    };
+  }
   */
 
   @Post('signup')
@@ -107,13 +129,11 @@ export class GuestController {
       type: UserActivationType.signup,
     });
 
-    /*
     await this.mailer.sendUserRegistration({
       activationToken: userActivationData.token,
       userEmail: data.user.email,
       userPassword: data.password,
     });
-    */
 
     const userView = this.userRepository.toView(
       data.user,
@@ -220,12 +240,10 @@ export class GuestController {
 
     const recoveryData = await this.jwtUserRecovery.create(user.id);
 
-    /*
     await this.mailer.sendUserPasswordRecovery({
       recoveryToken: recoveryData.token,
       userEmail: user.email,
     });
-    */
 
     return {
       message: 'We have sent you an email to reset your password.',
@@ -264,35 +282,13 @@ export class GuestController {
           id: checkResult.jwtRow.id,
         },
       });
-    } catch (error) { }
+    } catch (error) {}
 
     const auth = await this.authService.login(user);
 
     return {
       accessToken: auth.accessToken,
       user: this.userRepository.toView(auth.user, UserViewType.PRIVATE),
-    };
-  }
-
-  @Get(':id')
-  @ApiOperation({
-    summary: ':id',
-  })
-  async getUserById(@Param() params: ByIdParamsDto) {
-    const userIdBI = BigInt(params.id);
-
-    const user = await this.userRepository.findFirst({
-      id: userIdBI,
-      role: UserRole.USER,
-      ...this.userRepository.whereNotDeleted(),
-    });
-
-    if (!user) {
-      throw new HttpException(ExErrors.Users.NotFound, HttpStatus.NOT_FOUND);
-    }
-
-    return {
-      user: this.userRepository.toView(user),
     };
   }
 }
