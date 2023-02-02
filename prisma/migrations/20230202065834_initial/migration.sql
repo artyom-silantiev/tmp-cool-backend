@@ -31,8 +31,6 @@ CREATE TABLE "User" (
     "passwordHash" VARCHAR(72) NOT NULL,
     "loggedAt" TIMESTAMP(3),
     "imageId" BIGINT,
-    "isSim" BOOLEAN NOT NULL DEFAULT false,
-    "isClean" BOOLEAN NOT NULL DEFAULT false,
     "deletedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -86,7 +84,7 @@ CREATE TABLE "Task" (
 -- CreateTable
 CREATE TABLE "FileRef" (
     "id" BIGSERIAL NOT NULL,
-    "uid" VARCHAR(20) NOT NULL,
+    "uid" VARCHAR(24) NOT NULL,
     "fileId" BIGINT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -97,8 +95,8 @@ CREATE TABLE "FileRef" (
 -- CreateTable
 CREATE TABLE "File" (
     "id" BIGSERIAL NOT NULL,
-    "sha256" VARCHAR(64) NOT NULL,
     "mime" VARCHAR(255) NOT NULL,
+    "sha256" VARCHAR(64) NOT NULL,
     "size" INTEGER NOT NULL,
     "width" INTEGER,
     "height" INTEGER,
@@ -119,12 +117,6 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 CREATE INDEX "User_deletedAt_idx" ON "User"("deletedAt");
 
 -- CreateIndex
-CREATE INDEX "User_isClean_idx" ON "User"("isClean");
-
--- CreateIndex
-CREATE INDEX "User_isSim_idx" ON "User"("isSim");
-
--- CreateIndex
 CREATE UNIQUE INDEX "Jwt_uid_key" ON "Jwt"("uid");
 
 -- CreateIndex
@@ -143,7 +135,7 @@ CREATE INDEX "Task_isActive_idx" ON "Task"("isActive");
 CREATE UNIQUE INDEX "FileRef_uid_key" ON "FileRef"("uid");
 
 -- CreateIndex
-CREATE INDEX "File_sha256_idx" ON "File"("sha256");
+CREATE UNIQUE INDEX "File_sha256_key" ON "File"("sha256");
 
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_imageId_fkey" FOREIGN KEY ("imageId") REFERENCES "FileRef"("id") ON DELETE SET NULL ON UPDATE CASCADE;

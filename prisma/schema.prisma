@@ -34,9 +34,6 @@ model User {
   loggedAt         DateTime?
   imageId          BigInt?
 
-  isSim   Boolean @default(false)
-  isClean Boolean @default(false)
-
   deletedAt DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -46,8 +43,6 @@ model User {
   jwt   Jwt[]
 
   @@index([deletedAt])
-  @@index([isClean])
-  @@index([isSim])
 }
 
 enum JwtType {
@@ -106,16 +101,9 @@ model Task {
   @@index([isActive])
 }
 
-enum MediaType {
-  OTHER
-  IMAGE
-  VIDEO
-  AUDIO
-}
-
 model FileRef {
   id          BigInt       @id @default(autoincrement())
-  uid         String       @unique @db.VarChar(20)
+  uid         String       @unique @db.VarChar(24)
   fileId BigInt 
 
   createdAt DateTime @default(now())
@@ -125,15 +113,22 @@ model FileRef {
   file File @relation(fields: [fileId], references: [id])
 }
 
+enum MediaType {
+  OTHER
+  IMAGE
+  VIDEO
+  AUDIO
+}
+
 model File {
   id          BigInt @id @default(autoincrement())
-  sha256      String @db.VarChar(64)
   mime        String @db.VarChar(255) // mime type
+  sha256      String @db.VarChar(64) @unique
   size        Int // bytes size
-  width       Int? // for image or video width
-  height      Int? // for image or video height
+  width       Int? // for image or video
+  height      Int? // for image or video
   durationSec Int? // for video or audio
-  pathToFile  String @db.VarChar(255)
+  pathToFile  String @db.VarChar(255) // local path
 
   type     MediaType
   isBanned Boolean   @default(false)
@@ -142,8 +137,6 @@ model File {
   updatedAt DateTime @updatedAt
 
   refs        FileRef[]
-
-  @@index([sha256])
 }
 
 
