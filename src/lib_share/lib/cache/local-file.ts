@@ -1,5 +1,5 @@
-import { FileRefRequest } from '@share/modules/local_files/file_ref_request';
-import { FileMeta } from '@share/modules/local_files/local_files-output.service';
+import { FileMeta } from '@share/modules/files/files-output.service';
+import { FileRefRequest } from '@share/modules/files/files_request';
 import { useRedis } from '../redis';
 
 const prefixKey = 'LocalFile:';

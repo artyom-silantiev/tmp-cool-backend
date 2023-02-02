@@ -8,23 +8,23 @@ import * as sharp from 'sharp';
 import * as fs from 'fs-extra';
 import { FileRepository } from '@db/repositories/file.repository';
 import { PrismaService } from '@db/prisma.service';
-import { ThumbParam } from './file_ref_request';
+import { ThumbParam } from './files_request';
 import { getMediaContentProbe } from '@share/ffmpeg';
 import { getMimeFromPath, getFileSha256 } from '@share/helpers';
 import { useEnv } from '@share/lib/env/env';
 import { useBs58 } from '@share/lib/bs58';
-import { LocalFilesDefs } from './defs';
+import { FilesDefs } from './defs';
 import { FileWrap } from './types';
-import { FileMeta } from './local_files-output.service';
+import { FileMeta } from './files-output.service';
 
 @Injectable()
-export class LocalFilesMakeService {
+export class FilesMakeService {
   private env = useEnv();
   private bs58 = useBs58();
 
   constructor(
     private prisma: PrismaService,
-    private localFileRepository: FileRepository,
+    private filesRepository: FileRepository,
   ) {}
 
   async createFileDb(
@@ -41,9 +41,7 @@ export class LocalFilesMakeService {
 
     let fileWrap: FileWrap;
     try {
-      fileWrap = await this.localFileRepository.getFileRefDbByUid(
-        fileSha256Hash,
-      );
+      fileWrap = await this.filesRepository.getFileDbBySha256(fileSha256Hash);
     } catch {}
     if (fileWrap) {
       await fs.remove(tempFile);
@@ -104,7 +102,7 @@ export class LocalFilesMakeService {
     const year = now.format('YYYY');
     const month = now.format('MM');
     const day = now.format('DD');
-    const locaFiles = LocalFilesDefs.DIR;
+    const locaFiles = FilesDefs.DIR;
     const locDirForFile = path.join(year, month, day);
     const absDirForFile = path.resolve(locaFiles, locDirForFile);
     const locPathToFile = path.join(locDirForFile, fileSha256Hash);
@@ -137,7 +135,6 @@ export class LocalFilesMakeService {
     orgFile: File,
     thumb: ThumbParam,
     thumbFile: {
-      dir: string;
       file: string;
       meta: string;
     },
@@ -146,7 +143,7 @@ export class LocalFilesMakeService {
       this.env.DIR_TEMP,
       this.bs58.uid() + '.thumb.jpg',
     );
-    const absFilePath = path.resolve(LocalFilesDefs.DIR, orgFile.pathToFile);
+    const absFilePath = path.resolve(FilesDefs.DIR, orgFile.pathToFile);
     const image = sharp(absFilePath);
     const metadata = await image.metadata();
 
@@ -172,17 +169,21 @@ export class LocalFilesMakeService {
       }
     }
 
-    await fs.mkdirs(thumbFile.dir);
+    const thumbDir = thumbFile.file.replace(/^(.*)\/.*$/, '$1');
+    await fs.mkdirs(thumbDir);
     await fs.move(tempNewThumbImageFile, thumbFile.file);
+    const sha256 = await getFileSha256(thumbFile.file);
     const thumbMeta = {
       absPathToFile: thumbFile.file,
-      sha256: orgFile.sha256,
       contentType: MediaType.IMAGE,
       mime: 'image/jpeg',
       size: info.size,
       width: info.width,
       height: info.height,
       durationSec: null,
+      sha256: sha256,
+      isThumb: true,
+      orgId: orgFile.id.toString(),
       createdAt: new Date().toISOString(),
     } as FileMeta;
     await fs.writeJSON(thumbFile.meta, thumbMeta);

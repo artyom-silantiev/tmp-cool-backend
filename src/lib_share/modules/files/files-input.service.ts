@@ -2,25 +2,25 @@ import { Injectable } from '@nestjs/common';
 import * as _ from 'lodash';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { LocalFilesMakeService } from './local_files-make.service';
+import { FilesMakeService } from './files-make.service';
 import { useEnv } from '@share/lib/env/env';
 import { useBs58 } from '@share/lib/bs58';
 import { FileRefRepository } from '@db/repositories/file_ref.repository';
 
 @Injectable()
-export class LocalFilesInputService {
+export class FilesInputService {
   private env = useEnv();
   private bs58 = useBs58();
 
   constructor(
     private fileRefRepository: FileRefRepository,
-    private localFilesMake: LocalFilesMakeService,
+    private filesMake: FilesMakeService,
   ) {}
 
   async init() {}
 
   async uploadImageByFile(imageFile: string) {
-    const fileWrap = await this.localFilesMake.createFileDb(imageFile);
+    const fileWrap = await this.filesMake.createFileDb(imageFile);
 
     const imageRef = await this.fileRefRepository.createByFile(fileWrap.file);
 

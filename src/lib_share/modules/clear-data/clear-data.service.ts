@@ -4,7 +4,7 @@ import { MediaType } from '@prisma/client';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { useEnv } from '@share/lib/env/env';
-import { LocalFilesDefs } from '../local_files/defs';
+import { FilesDefs } from '../files/defs';
 
 @Injectable()
 export class ClearDataService {
@@ -92,7 +92,7 @@ export class ClearDataService {
       return false;
     }
 
-    const absPathToFile = path.resolve(LocalFilesDefs.DIR, file.pathToFile);
+    const absPathToFile = path.resolve(FilesDefs.DIR, file.pathToFile);
     await fs.remove(absPathToFile);
 
     await this.prisma.file.delete({

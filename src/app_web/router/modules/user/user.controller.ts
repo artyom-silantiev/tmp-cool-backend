@@ -34,7 +34,7 @@ import { Response } from 'express';
 import { PrismaService } from '@db/prisma.service';
 import { UserRepository, UserViewType } from '@db/repositories/user.repository';
 import { useEnv } from '@share/lib/env/env';
-import { LocalFilesInputService } from '@share/modules/local_files/local_files-input.service';
+import { FilesInputService } from '@share/modules/files/files-input.service';
 
 @ApiTags('api user')
 @Controller()
@@ -50,7 +50,7 @@ export class UserController {
     private jwtUserAuth: JwtUserAuthService,
     private jwtUserActivate: JwtUserActivationService,
     private clearData: ClearDataService,
-    private localFilesInputService: LocalFilesInputService,
+    private filesInputService: FilesInputService,
   ) {}
 
   @Post('logout')
@@ -229,10 +229,14 @@ export class UserController {
     });
     const oldImage = user.imageId;
 
-    const uploadImageRes =
-      await this.localFilesInputService.uploadImageByMulter(imageFile);
+    const uploadImageRes = await this.filesInputService.uploadImageByMulter(
+      imageFile,
+    );
     const image = uploadImageRes.imageRef;
     const status = uploadImageRes.status;
+
+    console.log('aaa', uploadImageRes.imageRef);
+    console.log('bbb', user.image);
 
     const updatedUser = await this.userRepository.updateByModel(user, {
       imageId: image.id,

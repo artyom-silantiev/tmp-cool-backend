@@ -10,12 +10,12 @@ import {
 import { Response, Request } from 'express';
 import { ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
+import * as fs from 'fs-extra';
 import {
   FileMeta,
-  LocalFilesOutputService,
-} from '@share/modules/local_files/local_files-output.service';
-import * as fs from 'fs-extra';
-import { FileRefRequest } from '@share/modules/local_files/file_ref_request';
+  FilesOutputService,
+} from '@share/modules/files/files-output.service';
+import { FileRefRequest } from '@share/modules/files/files_request';
 
 export class ByUidParamDto {
   @IsString()
@@ -36,7 +36,7 @@ export class ByUidAndArgsDto {
 @ApiTags('files refs')
 @Controller()
 export class FilesController {
-  constructor(private fileOutput: LocalFilesOutputService) {}
+  constructor(private filesOutput: FilesOutputService) {}
 
   parseUid(uidParam: string, query: { [key: string]: string }) {
     let fileRefRequest: FileRefRequest;
@@ -150,7 +150,7 @@ export class FilesController {
     const query = req.query as { [key: string]: string };
     const fileRefRequest = this.parseUid(uid, query);
 
-    const fileRes = await this.fileOutput.getFileDbPathByFileRefRequest(
+    const fileRes = await this.filesOutput.getFileDbPathByFileRefRequest(
       fileRefRequest,
     );
 
@@ -175,7 +175,7 @@ export class FilesController {
     const query = req.query as { [key: string]: string };
     const fileRefRequest = this.parseUid(uid, query);
 
-    const fileRes = await this.fileOutput.getFileDbPathByFileRefRequest(
+    const fileRes = await this.filesOutput.getFileDbPathByFileRefRequest(
       fileRefRequest,
     );
 
@@ -206,7 +206,7 @@ export class FilesController {
       query,
     );
 
-    const fileRes = await this.fileOutput.getFileDbPathByFileRefRequest(
+    const fileRes = await this.filesOutput.getFileDbPathByFileRefRequest(
       localFilesRequest,
     );
 
@@ -234,7 +234,7 @@ export class FilesController {
       query,
     );
 
-    const fileRes = await this.fileOutput.getFileDbPathByFileRefRequest(
+    const fileRes = await this.filesOutput.getFileDbPathByFileRefRequest(
       localFilesRequest,
     );
 

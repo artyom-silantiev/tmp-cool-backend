@@ -1,7 +1,7 @@
 import { HttpException, Injectable } from '@nestjs/common';
-import { FileRefRequest, ThumbParam } from './file_ref_request';
-import { LocalFilesMakeService } from './local_files-make.service';
-import { File, FileRef, MediaType } from '@prisma/client';
+import { FileRefRequest } from './files_request';
+import { FilesMakeService } from './files-make.service';
+import { File, MediaType } from '@prisma/client';
 import { FileRepository } from '@db/repositories/file.repository';
 import { PrismaService } from '@db/prisma.service';
 import * as _ from 'lodash';
@@ -9,45 +9,36 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { useEnv } from '@share/lib/env/env';
 import { useCacheLocalFile } from '@share/lib/cache/local-file';
-import { LocalFilesDefs } from './defs';
+import { FilesDefs } from './defs';
 
 export type FileMeta = {
   absPathToFile: string;
-  sha256: string;
   contentType: MediaType;
   mime: string;
   size: number;
   width: number | null;
   height: number | null;
   durationSec: number | null;
+  sha256: string;
+  isThumb?: boolean;
+  orgId?: string;
   createdAt: Date | string;
 };
 
 const env = useEnv();
 
 @Injectable()
-export class LocalFilesOutputService {
+export class FilesOutputService {
   private cacheFileDb = useCacheLocalFile();
 
   constructor(
     private prisma: PrismaService,
     private fileRepository: FileRepository,
-    private localFilesMake: LocalFilesMakeService,
+    private localFilesMake: FilesMakeService,
   ) {}
 
-  getThumbFile(file: File, thumb: ThumbParam) {
-    const part1 = file.sha256.substring(0, 3);
-    const thumbDir = path.resolve(env.DIR_TEMP, 'images_thumbs', part1);
-    const thumbName = `${file.sha256}.${thumb.type}.${thumb.name}`;
-    return {
-      dir: thumbDir,
-      file: path.resolve(thumbDir, thumbName),
-      meta: path.resolve(thumbDir, `${thumbName}.meta`),
-    };
-  }
-
   getFileMetaFromFileDb(fileDb: File) {
-    const absPathToFile = path.resolve(LocalFilesDefs.DIR, fileDb.pathToFile);
+    const absPathToFile = path.resolve(FilesDefs.DIR, fileDb.pathToFile);
 
     const fileMeta = {
       absPathToFile,
@@ -87,26 +78,13 @@ export class LocalFilesOutputService {
         );
       }
 
-      const thumb = fileRefRequest.thumb;
       const orgFile = tmpFileRef.file;
 
-      if (thumb.type === 'width') {
-        thumb.name = FileRefRequest.parseThumbSize(
-          parseInt(thumb.name),
-          orgFile.width,
-          env.LOCAL_FILES_CACHE_MIN_THUMB_LOG_SIZE,
-        );
-      } else if (thumb.type === 'name') {
-        if (thumb.name === 'fullhd') {
-          if (orgFile.width > 1920 || orgFile.height > 1920) {
-            // noting
-          } else {
-            fileMeta = this.getFileMetaFromFileDb(tmpFileRef.file);
-          }
-        }
+      if (fileRefRequest.normalizeThumb(orgFile.width, orgFile.height)) {
+        fileMeta = this.getFileMetaFromFileDb(tmpFileRef.file);
       }
 
-      const thumbFile = this.getThumbFile(orgFile, thumb);
+      const thumbFile = fileRefRequest.getThumbFile(orgFile);
       if (!fileMeta) {
         // get thumb from FS
         try {
@@ -119,7 +97,7 @@ export class LocalFilesOutputService {
       if (!fileMeta) {
         fileMeta = await this.localFilesMake.createNewThumbForLocalFile(
           orgFile,
-          thumb,
+          fileRefRequest.thumb,
           thumbFile,
         );
         status = 208;

@@ -1,7 +1,6 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { File, FileRef } from '@prisma/client';
-import { FileWrap } from '@share/modules/local_files/types';
 
 export type FileRow = File & {
   refs?: FileRef[];
@@ -39,5 +38,19 @@ export class FileRepository {
     }
 
     return { status: 200, file: fileRef.file };
+  }
+
+  async getFileDbBySha256(sha256: string) {
+    const file = await this.prisma.file.findFirst({
+      where: {
+        sha256,
+      },
+    });
+
+    if (!file) {
+      throw new HttpException('', 404);
+    }
+
+    return { status: 200, file: file };
   }
 }
