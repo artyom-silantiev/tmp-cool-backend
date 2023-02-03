@@ -7,6 +7,7 @@ yarn cli:seeder
 if [ "$NODE_ENV" == "development" ]; then
   yarn web:dev
 elif [ "$NODE_ENV" == "production" ]; then
+  yarn
   yarn web:prod
 fi
 
