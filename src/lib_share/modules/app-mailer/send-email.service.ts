@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AppMailerService } from './app-mailer.service';
-import { I18nRequestScopeService } from 'nestjs-i18n';
+import { I18nService } from 'nestjs-i18n';
 import { useEnv } from '@share/lib/env/env';
 
 @Injectable()
@@ -9,7 +9,7 @@ export class SendEmailService {
 
   constructor(
     private readonly mailer: AppMailerService,
-    private readonly i18n: I18nRequestScopeService,
+    private readonly i18n: I18nService,
   ) {}
 
   async sendUserRegistration(params: {

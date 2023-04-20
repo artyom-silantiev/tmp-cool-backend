@@ -1,12 +1,8 @@
 import {
   Request,
   Controller,
-  Get,
   Post,
-  Param,
   Body,
-  UseGuards,
-  Query,
   HttpStatus,
   HttpException,
 } from '@nestjs/common';
@@ -20,7 +16,6 @@ import {
   UserRecoverytDto,
 } from './guest.dto';
 import { AuthService } from '@share/modules/auth/auth.service';
-import { LocalAuthGuard } from '@share/modules/auth/local-auth.guard';
 
 import * as _ from 'lodash';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
