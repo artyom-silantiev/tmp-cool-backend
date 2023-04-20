@@ -3,6 +3,10 @@
   "private": true,
   "version": "0.6.3",
   "description": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/artyom-silantiev/tmp-cool-backend"
+  },
   "scripts": {
     "devs": "prisma migrate dev && npm run cli:seeder",
     "migrate_dev": "prisma migrate dev",
