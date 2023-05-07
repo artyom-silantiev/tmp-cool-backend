@@ -52,8 +52,6 @@ export class CronService {
 
   @QueueJob(1000 * useEnv().MAILER_QUEUE_DELAY_SEC)
   private async mailerSend() {
-    const delayMs = 1000 * this.env.MAILER_QUEUE_DELAY_SEC;
-
     const taskTypes = [TaskType.SEND_EMAIL];
     const attemptes = this.env.MAILER_QUEUE_ATTEMPTS;
     const packSize = this.env.MAILER_QUEUE_PACK_SIZE;
